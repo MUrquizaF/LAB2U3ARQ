@@ -1,0 +1,22 @@
+DEFINE
+    MEASURE 'public detalle_operacion'[Importe Total] = 
+        SUMX(
+            'public detalle_operacion', 
+            'public detalle_operacion'[cantidad] * 'public detalle_operacion'[precio_unitario] * (1 - DIVIDE('public detalle_operacion'[descuento], 100))
+        )
+
+    MEASURE 'public detalle_operacion'[Importe Completado] = 
+        CALCULATE(
+            [Importe Total],
+            'public operaciones'[estado] = "Completada"
+        )
+
+    MEASURE 'public detalle_operacion'[Total Operaciones] = 
+        DISTINCTCOUNT('public detalle_operacion'[operacion_id])
+
+EVALUATE
+    SUMMARIZECOLUMNS(
+        "Importe Total", [Importe Total],
+        "Importe Completado", [Importe Completado],
+        "Total Operaciones", [Total Operaciones]
+    )

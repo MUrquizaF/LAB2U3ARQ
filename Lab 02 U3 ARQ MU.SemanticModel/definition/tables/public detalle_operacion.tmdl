@@ -1,0 +1,107 @@
+table 'public detalle_operacion'
+	lineageTag: d73adbb1-de93-47aa-a178-a2c7b6663937
+
+	measure 'Importe Total' = ```
+			
+			        SUMX(
+			            'public detalle_operacion', 
+			            'public detalle_operacion'[cantidad] * 'public detalle_operacion'[precio_unitario] * (1 - DIVIDE('public detalle_operacion'[descuento], 100))
+			        )
+			```
+		lineageTag: c6f116d4-af2f-43ed-81c3-d3971a133c69
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Importe Completado' = ```
+			
+			        CALCULATE(
+			            [Importe Total],
+			            'public operaciones'[estado] = "Completada"
+			        )
+			```
+		lineageTag: 57bb59ce-fbfc-4af6-9d82-2a4a081c6f4a
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Total Operaciones' = ```
+			
+			        DISTINCTCOUNT('public detalle_operacion'[operacion_id])
+			```
+		formatString: 0
+		lineageTag: 3bae6744-8a52-46fe-a1a5-57c47cbd1b7c
+
+	column detalle_id
+		dataType: int64
+		formatString: 0
+		lineageTag: 08bfb86b-1f08-4d39-baf1-7c866a366c02
+		summarizeBy: sum
+		sourceColumn: detalle_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column operacion_id
+		dataType: int64
+		formatString: 0
+		lineageTag: dfb36cd1-eed7-4c1b-9456-61f66664ce47
+		summarizeBy: none
+		sourceColumn: operacion_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column producto_id
+		dataType: int64
+		formatString: 0
+		lineageTag: 83b67fb2-6940-4220-a3b2-09b4fae6291e
+		summarizeBy: none
+		sourceColumn: producto_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column cantidad
+		dataType: int64
+		formatString: 0
+		lineageTag: 652a6b20-1099-4a4a-846d-46b997f15908
+		summarizeBy: sum
+		sourceColumn: cantidad
+
+		annotation SummarizationSetBy = Automatic
+
+	column precio_unitario
+		dataType: double
+		lineageTag: 75a3fd3b-692b-4118-a639-252a22b7b3fa
+		summarizeBy: sum
+		sourceColumn: precio_unitario
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column descuento
+		dataType: double
+		lineageTag: ddefe352-edea-4a86-96cf-4960a9b32a82
+		summarizeBy: sum
+		sourceColumn: descuento
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition 'public detalle_operacion' = m
+		mode: import
+		source =
+				let
+				    Source = PostgreSQL.Database("ep-twilight-butterfly-bdxo7l1i-pooler.c-8.us-east-2.aws.neon.tech", "viajes"),
+				    public_detalle_operacion = Source{[Schema="public",Item="detalle_operacion"]}[Data],
+				    #"Filtered Rows" = Table.SelectRows(public_detalle_operacion, each [cantidad] <> null and [cantidad] <> ""),
+				    #"Filtered Rows1" = Table.SelectRows(#"Filtered Rows", each [precio_unitario] <> null and [precio_unitario] <> ""),
+				    #"Filtered Rows2" = Table.SelectRows(#"Filtered Rows1", each [cantidad] >= 1 and [cantidad] < 9999),
+				    #"Filtered Rows3" = Table.SelectRows(#"Filtered Rows2", each true),
+				    #"Filtered Rows4" = Table.SelectRows(#"Filtered Rows3", each [descuento] <> null and [descuento] <> ""),
+				    #"Filtered Rows5" = Table.SelectRows(#"Filtered Rows4", each [descuento] >= 1 and [descuento] < 100)
+				in
+				    #"Filtered Rows5"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

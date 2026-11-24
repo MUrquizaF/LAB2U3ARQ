@@ -1,0 +1,54 @@
+table 'public catalogo'
+	lineageTag: 75b8d1b9-aa31-4183-8325-09e1a15aebd2
+
+	column producto_id
+		dataType: int64
+		formatString: 0
+		lineageTag: ba0d9989-ef93-4f71-9872-a5689a2285b1
+		summarizeBy: none
+		sourceColumn: producto_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column nombre
+		dataType: string
+		lineageTag: 7badbe01-89c5-493b-9ad7-14342d2c5452
+		summarizeBy: none
+		sourceColumn: nombre
+
+		annotation SummarizationSetBy = Automatic
+
+	column categoria
+		dataType: string
+		lineageTag: 20e566aa-ba4d-4344-8f19-419a32e242fb
+		summarizeBy: none
+		sourceColumn: categoria
+
+		annotation SummarizationSetBy = Automatic
+
+	column precio_lista
+		dataType: double
+		lineageTag: 7bfada13-242e-4969-9d15-8fb5143b0983
+		summarizeBy: none
+		sourceColumn: precio_lista
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition 'public catalogo' = m
+		mode: import
+		source =
+				let
+				    Source = PostgreSQL.Database("ep-twilight-butterfly-bdxo7l1i-pooler.c-8.us-east-2.aws.neon.tech", "viajes"),
+				    public_catalogo = Source{[Schema="public",Item="catalogo"]}[Data],
+				    #"Trimmed Text" = Table.TransformColumns(public_catalogo,{{"nombre", Text.Trim, type text}, {"categoria", Text.Trim, type text}}),
+				    #"Filtered Rows" = Table.SelectRows(#"Trimmed Text", each [nombre] <> null and [nombre] <> ""),
+				    #"Filtered Rows1" = Table.SelectRows(#"Filtered Rows", each [categoria] <> null and [categoria] <> "")
+				in
+				    #"Filtered Rows1"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

@@ -1,0 +1,97 @@
+table 'public operaciones'
+	lineageTag: 70e18100-7145-488d-b9cb-f83c4b2cefa6
+
+	column operacion_id
+		dataType: int64
+		formatString: 0
+		lineageTag: 28afd72d-4bf6-481b-8ed3-8ff244a38f80
+		summarizeBy: none
+		sourceColumn: operacion_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column cliente_id
+		dataType: int64
+		formatString: 0
+		lineageTag: 7ebdc273-e77a-4735-bde4-7554a7e36cb6
+		summarizeBy: none
+		sourceColumn: cliente_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column sede_id
+		dataType: int64
+		formatString: 0
+		lineageTag: 95e517e5-e5fa-4ed2-98a3-4793053bf1c0
+		summarizeBy: none
+		sourceColumn: sede_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column fecha
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: b65e3c69-3a76-4af3-9a5b-99e43a3d3b03
+		summarizeBy: none
+		sourceColumn: fecha
+
+		variation Variation
+			isDefault
+			relationship: db9cd2f4-719a-4baa-8ef5-add64a8e3a6e
+			defaultHierarchy: LocalDateTable_95c46cd9-9aa4-4a3b-a6f2-5369b77e8d4c.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column estado
+		dataType: string
+		lineageTag: 542ab286-3a40-4b15-b0fe-92968139876f
+		summarizeBy: none
+		sourceColumn: estado
+
+		annotation SummarizationSetBy = Automatic
+
+	column canal
+		dataType: string
+		lineageTag: 0df4e4f9-458d-483a-9eb6-5d2c58fb3e03
+		summarizeBy: none
+		sourceColumn: canal
+
+		annotation SummarizationSetBy = Automatic
+
+	column actualizado_en
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 61cc9e59-64f7-415d-8490-19a447610c99
+		summarizeBy: none
+		sourceColumn: actualizado_en
+
+		variation Variation
+			isDefault
+			relationship: 4c0dc870-868f-426c-8810-983365e4ee39
+			defaultHierarchy: LocalDateTable_ff426e92-5139-4471-8ed3-1569dd5a98d7.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'public operaciones' = m
+		mode: import
+		source =
+				let
+				    Source = PostgreSQL.Database("ep-twilight-butterfly-bdxo7l1i-pooler.c-8.us-east-2.aws.neon.tech", "viajes"),
+				    public_operaciones = Source{[Schema="public",Item="operaciones"]}[Data],
+				    #"Filtered Rows" = Table.SelectRows(public_operaciones, each [estado] <> null and [estado] <> ""),
+				    #"Filtered Rows1" = Table.SelectRows(#"Filtered Rows", each [canal] <> null and [canal] <> ""),
+				    #"Filtered Rows2" = Table.SelectRows(#"Filtered Rows1", each [canal] <> null and [canal] <> ""),
+				    #"Filtered Rows3" = Table.SelectRows(#"Filtered Rows2", each ([fecha] <> null and [fecha] <> "") and ([canal] <> "   " and [canal] <> "??" and [canal] <> "N/A") and ([estado] <> "???")),
+				    #"Capitalized Each Word" = Table.TransformColumns(#"Filtered Rows3",{{"estado", Text.Proper, type text}, {"canal", Text.Proper, type text}}),
+				    #"Replaced Value" = Table.ReplaceValue(#"Capitalized Each Word","Digtal","Digital",Replacer.ReplaceText,{"canal"}),
+				    #"Filtered Rows4" = Table.SelectRows(#"Replaced Value", each true),
+				    #"Trimmed Text" = Table.TransformColumns(#"Filtered Rows4",{{"estado", Text.Trim, type text}}),
+				    #"Filtered Rows5" = Table.SelectRows(#"Trimmed Text", each true),
+				    #"Trimmed Text1" = Table.TransformColumns(#"Filtered Rows5",{{"canal", Text.Trim, type text}})
+				in
+				    #"Trimmed Text1"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

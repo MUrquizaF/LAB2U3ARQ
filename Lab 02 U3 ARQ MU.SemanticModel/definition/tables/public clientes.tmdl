@@ -1,0 +1,59 @@
+table 'public clientes'
+	lineageTag: ca611984-c278-4ad8-afe1-7a392ea909b4
+
+	column cliente_id
+		dataType: int64
+		formatString: 0
+		lineageTag: 8ccdae09-0220-4ed2-9066-3fb20407c82d
+		summarizeBy: none
+		sourceColumn: cliente_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column nombre
+		dataType: string
+		lineageTag: 32bb66ac-2630-45bc-abf4-233fa0781abb
+		summarizeBy: none
+		sourceColumn: nombre
+
+		annotation SummarizationSetBy = Automatic
+
+	column segmento
+		dataType: string
+		lineageTag: 18f79fd6-b9e7-4c66-8ee2-7218341b548e
+		summarizeBy: none
+		sourceColumn: segmento
+
+		annotation SummarizationSetBy = Automatic
+
+	column fecha_registro
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: cb24509c-d005-44a7-8094-091b11edf5c8
+		summarizeBy: none
+		sourceColumn: fecha_registro
+
+		variation Variation
+			isDefault
+			relationship: 8b1f9bb9-32c6-4bcd-997f-42968bafdab2
+			defaultHierarchy: LocalDateTable_6f9d5372-7100-4c9c-b84d-f7891c349b27.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	partition 'public clientes' = m
+		mode: import
+		source =
+				let
+				    Source = PostgreSQL.Database("ep-twilight-butterfly-bdxo7l1i-pooler.c-8.us-east-2.aws.neon.tech", "viajes"),
+				    public_clientes = Source{[Schema="public",Item="clientes"]}[Data],
+				    #"Filtered Rows" = Table.SelectRows(public_clientes, each [nombre] <> null and [nombre] <> ""),
+				    #"Filtered Rows1" = Table.SelectRows(#"Filtered Rows", each [segmento] <> null and [segmento] <> "")
+				in
+				    #"Filtered Rows1"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

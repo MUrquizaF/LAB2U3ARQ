@@ -1,0 +1,39 @@
+table 'public sedes'
+	lineageTag: 5c917c78-d32c-4e20-9040-b6140f2f23a9
+
+	column sede_id
+		dataType: int64
+		formatString: 0
+		lineageTag: bdceb408-9cdb-43c6-8b70-fda0a524f3ec
+		summarizeBy: none
+		sourceColumn: sede_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column nombre
+		dataType: string
+		lineageTag: 8c6bfe20-828b-47a4-bc92-45c0c48b2a46
+		summarizeBy: none
+		sourceColumn: nombre
+
+		annotation SummarizationSetBy = Automatic
+
+	column ciudad
+		dataType: string
+		lineageTag: 8b11345e-5f8c-428b-bb0e-c36a80994696
+		summarizeBy: none
+		sourceColumn: ciudad
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'public sedes' = m
+		mode: import
+		source =
+				let
+				    Source = PostgreSQL.Database("ep-twilight-butterfly-bdxo7l1i-pooler.c-8.us-east-2.aws.neon.tech", "viajes"),
+				    public_sedes = Source{[Schema="public",Item="sedes"]}[Data]
+				in
+				    public_sedes
+
+	annotation PBI_ResultType = Table
+
