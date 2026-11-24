@@ -1,0 +1,13 @@
+{
+  "version": "1.0",
+  "artifacts": [
+    {
+      "report": {
+        "path": "Lab 02 U3 ARQ MU.Report"
+      }
+    }
+  ],
+  "settings": {
+    "enableAutoRecovery": true
+  }
+}
